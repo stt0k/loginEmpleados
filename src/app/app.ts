@@ -1,16 +1,17 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { Header } from './components/header/header';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, Header],
   template: `
-    <h1>Welcome to {{ title() }}!</h1>
-
-    <router-outlet />
+    <div class="container mx-auto mt-10 text-white">
+      <app-header />
+      <main class="pt-8">
+        <router-outlet />
+      </main>
+    </div>
   `,
-  styles: [],
 })
-export class App {
-  protected readonly title = signal('loginEmpleados');
-}
+export class App {}

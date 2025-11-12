@@ -1,3 +1,23 @@
 import { Routes } from '@angular/router';
+import { Home } from './components/home/home';
+import { Login } from './components/login/login';
+import { Perfil } from './components/perfil/perfil';
+import { Subordinados } from './components/subordinados/subordinados';
+import { authGuard } from './guards/auth.guard';
 
-export const routes: Routes = [];
+export const routes: Routes = [
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  { path: 'home', component: Home },
+  { path: 'login', component: Login },
+  {
+    path: 'perfil',
+    component: Perfil,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'subordinados',
+    component: Subordinados,
+    canActivate: [authGuard],
+  },
+  { path: '**', redirectTo: '/home' },
+];
