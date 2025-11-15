@@ -1,168 +1,102 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { CurrencyPipe } from '@angular/common';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Service } from '../../services/service';
+import { ServiceEmpleados } from '../../services/service';
 import { Empleado } from '../../models/empleado';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-subordinados',
-  imports: [CommonModule, CurrencyPipe],
+  imports: [CommonModule],
   template: `
-    <div class="max-w-4xl mx-auto p-6">
-      <h2 class="text-2xl font-semibold text-white text-center mb-8">Mis Subordinados</h2>
-
-      <div *ngIf="isLoading" class="bg-zinc-800/30 border border-white/10 rounded-lg p-6">
-        <p class="text-gray-400 text-center">Cargando subordinados...</p>
-      </div>
-
-      <div
-        *ngIf="errorMessage"
-        class="bg-red-900/50 border border-red-500/50 text-red-200 p-4 rounded mb-6 text-center"
-      >
-        {{ errorMessage }}
+    <div class="max-w-6xl mx-auto p-6">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-2xl font-semibold text-white">Mis Subordinados</h2>
         <button
-          (click)="loadSubordinados()"
-          class="block mx-auto mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
+          (click)="volverPerfil()"
+          class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition"
         >
-          Reintentar
+          ← Volver al Perfil
         </button>
       </div>
 
-      <div *ngIf="!isLoading && !errorMessage">
-        <div
-          *ngIf="subordinados.length === 0"
-          class="bg-zinc-800/30 border border-white/10 rounded-lg p-6"
-        >
-          <p class="text-gray-400 text-center">No tienes subordinados bajo tu supervisión.</p>
-        </div>
+      @if (subordinados().length === 0) {
+      <div class="bg-zinc-800/30 border border-white/10 rounded-lg p-8 text-center">
+        <p class="text-white text-lg">No tiene subordinados a su cargo.</p>
+      </div>
+      } @else {
+      <div class="bg-zinc-800/30 border border-white/10 rounded-lg overflow-hidden mb-6">
+        <table class="w-full">
+          <thead class="bg-zinc-900/50">
+            <tr>
+              <th class="px-4 py-3 text-left text-white">ID</th>
+              <th class="px-4 py-3 text-left text-white">Apellido</th>
+              <th class="px-4 py-3 text-left text-white">Oficio</th>
+              <th class="px-4 py-3 text-left text-white">Salario</th>
+              <th class="px-4 py-3 text-left text-white">Director</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (subordinado of subordinados(); track subordinado.idEmpleado) {
+            <tr class="border-t border-white/10 hover:bg-zinc-700/30">
+              <td class="px-4 py-3 text-white">{{ subordinado.idEmpleado }}</td>
+              <td class="px-4 py-3 text-white font-medium">{{ subordinado.apellido }}</td>
+              <td class="px-4 py-3 text-white">{{ subordinado.oficio }}</td>
+              <td class="px-4 py-3 text-green-400 font-semibold">
+                {{ subordinado.salario | currency : 'EUR' : 'symbol' : '1.2-2' }}
+              </td>
+              <td class="px-4 py-3 text-white">{{ subordinado.director }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
 
-        <div *ngIf="subordinados.length > 0" class="space-y-6">
-          <!-- Resumen -->
-          <div class="bg-zinc-800/30 border border-white/10 rounded-lg p-6">
-            <h3 class="text-lg font-medium text-white mb-4 text-center">📊 Resumen</h3>
-            <div class="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div class="text-2xl font-bold text-blue-400">{{ subordinados.length }}</div>
-                <div class="text-gray-300 text-sm">Subordinados</div>
-              </div>
-              <div>
-                <div class="text-2xl font-bold text-green-400">
-                  {{ getTotalSalarios() | currency : 'EUR' : 'symbol' : '1.0-0' }}
-                </div>
-                <div class="text-gray-300 text-sm">Total Salarios</div>
-              </div>
-              <div>
-                <div class="text-2xl font-bold text-purple-400">
-                  {{ getPromedioSalario() | currency : 'EUR' : 'symbol' : '1.0-0' }}
-                </div>
-                <div class="text-gray-300 text-sm">Promedio</div>
-              </div>
-            </div>
+      <div class="bg-zinc-800/30 border border-white/10 rounded-lg p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+          <div>
+            <p class="text-gray-300 mb-2">Total de subordinados:</p>
+            <p class="text-white text-2xl font-bold">{{ subordinados().length }}</p>
           </div>
-
-          <!-- Lista de subordinados -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div
-              *ngFor="let empleado of subordinados; trackBy: trackByEmpleado"
-              class="bg-zinc-800/30 border border-white/10 rounded-lg p-4"
-            >
-              <div class="mb-4">
-                <h4 class="text-lg font-medium text-white">{{ empleado.apellido }}</h4>
-                <p class="text-gray-300 text-sm">{{ empleado.oficio }}</p>
-                <span class="text-xs text-gray-400">ID: {{ empleado.idEmpleado }}</span>
-              </div>
-
-              <div class="space-y-2 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-gray-300">Salario:</span>
-                  <span class="text-green-400 font-semibold">{{
-                    empleado.salario | currency : 'EUR' : 'symbol' : '1.0-0'
-                  }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-300">Director:</span>
-                  <span class="text-white">{{ empleado.director || 'N/A' }}</span>
-                </div>
-              </div>
-            </div>
+          <div>
+            <p class="text-gray-300 mb-2">Salario total del equipo:</p>
+            <p class="text-green-400 text-2xl font-bold">
+              {{ calcularSalarioTotal() | currency : 'EUR' : 'symbol' : '1.2-2' }}
+            </p>
           </div>
         </div>
       </div>
-
-      <div class="mt-8 text-center">
-        <div class="flex gap-3 justify-center">
-          <button
-            (click)="goToPerfil()"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
-          >
-            Mi Perfil
-          </button>
-          <button
-            (click)="goBack()"
-            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition"
-          >
-            Volver
-          </button>
-        </div>
-      </div>
+      }
     </div>
   `,
 })
 export class Subordinados implements OnInit {
-  private authService = inject(Service);
-  private router = inject(Router);
+  private readonly service = inject(ServiceEmpleados);
+  private readonly router = inject(Router);
 
-  subordinados: Empleado[] = [];
-  isLoading = false;
-  errorMessage = '';
+  subordinados = signal<Empleado[]>([]);
 
-  ngOnInit() {
-    this.loadSubordinados();
+  ngOnInit(): void {
+    this.verificarToken();
   }
 
-  async loadSubordinados() {
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    try {
-      this.subordinados = await this.authService.getSubordinados();
-    } catch (error) {
-      this.errorMessage = 'Error al cargar los subordinados. Por favor, inténtalo de nuevo.';
-      console.error('Error al cargar subordinados:', error);
-    } finally {
-      this.isLoading = false;
+  private verificarToken(): void {
+    if (!this.service.isAuthenticated()) {
+      this.router.navigate(['/login']);
+      return;
     }
+    this.cargarSubordinados();
   }
 
-  getInitials(apellido: string): string {
-    if (!apellido) return 'E';
-    return apellido.substring(0, 2).toUpperCase();
+  private async cargarSubordinados(): Promise<void> {
+    const subordinados = await this.service.getSubordinados();
+    this.subordinados.set(subordinados);
   }
 
-  getTotalSalarios(): number {
-    return this.subordinados.reduce((total, emp) => total + emp.salario, 0);
+  calcularSalarioTotal(): number {
+    return this.subordinados().reduce((total, subordinado) => total + subordinado.salario, 0);
   }
 
-  getPromedioSalario(): number {
-    if (this.subordinados.length === 0) return 0;
-    return this.getTotalSalarios() / this.subordinados.length;
-  }
-
-  trackByEmpleado(index: number, empleado: Empleado): number {
-    return empleado.idEmpleado;
-  }
-
-  goToPerfil(): void {
+  volverPerfil(): void {
     this.router.navigate(['/perfil']);
-  }
-
-  goBack(): void {
-    this.router.navigate(['/home']);
-  }
-
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/home']);
   }
 }

@@ -1,3 +1,3 @@
 export const environment = {
-  apiEmpleadosLogin: 'https://apiempleadoscoreoauth.azurewebsites.net/',
+  urlApi: 'https://apiempleadoscoreoauth.azurewebsites.net/',
 };

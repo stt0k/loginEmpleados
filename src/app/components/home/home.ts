@@ -1,7 +1,7 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Service } from '../../services/service';
+import { ServiceEmpleados } from '../../services/service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-home',
@@ -15,19 +15,16 @@ import { Service } from '../../services/service';
       <div class="bg-zinc-800/30 border border-white/10 rounded-lg p-6 mb-8">
         <h2 class="text-xl font-medium text-white mb-4">Bienvenido</h2>
         <p class="text-gray-300 mb-6">
-          Este sistema te permite gestionar información de empleados y subordinados.
+          Este sistema te permite gestionar información de empleados y subordinados. Accede con tus
+          credenciales para ver tu perfil y gestionar tu equipo.
         </p>
 
-        <div *ngIf="!isAuthenticated" class="text-center">
-          <button
-            (click)="goToLogin()"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition"
-          >
-            Iniciar Sesión
-          </button>
+        @if (!isAuthenticated) {
+        <div class="text-center">
+          <p>Inicia sesión si quieres ver el contenido</p>
         </div>
-
-        <div *ngIf="isAuthenticated" class="flex gap-4 justify-center">
+        } @else {
+        <div class="flex flex-wrap gap-4 justify-center">
           <button
             (click)="goToPerfil()"
             class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
@@ -35,28 +32,29 @@ import { Service } from '../../services/service';
             Ver Perfil
           </button>
           <button
-            (click)="goToSubordinados()"
+            (click)="router.navigate(['/subordinados'])"
             class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition"
           >
             Subordinados
           </button>
-          <button
-            (click)="logout()"
-            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition"
-          >
-            Cerrar Sesión
-          </button>
         </div>
+        }
       </div>
     </div>
   `,
 })
-export class Home {
-  private authService = inject(Service);
-  private router = inject(Router);
+export class Home implements OnInit {
+  private readonly service = inject(ServiceEmpleados);
+  readonly router = inject(Router);
 
-  get isAuthenticated(): boolean {
-    return this.authService.isAuthenticated();
+  isAuthenticated = false;
+
+  ngOnInit(): void {
+    this.checkAuthentication();
+  }
+
+  private checkAuthentication(): void {
+    this.isAuthenticated = this.service.isAuthenticated();
   }
 
   goToLogin(): void {
@@ -65,14 +63,5 @@ export class Home {
 
   goToPerfil(): void {
     this.router.navigate(['/perfil']);
-  }
-
-  goToSubordinados(): void {
-    this.router.navigate(['/subordinados']);
-  }
-
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/home']);
   }
 }

@@ -6,9 +6,9 @@ import { Header } from './components/header/header';
   selector: 'app-root',
   imports: [RouterOutlet, Header],
   template: `
-    <div class="container mx-auto mt-10 text-white">
+    <div class="min-h-screen">
       <app-header />
-      <main class="pt-8">
+      <main class="pt-4">
         <router-outlet />
       </main>
     </div>
