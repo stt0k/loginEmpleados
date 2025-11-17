@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ServiceEmpleados } from '../../services/service';
 import { Empleado } from '../../models/empleado';
@@ -19,7 +19,7 @@ import { CommonModule } from '@angular/common';
         </button>
       </div>
 
-      @if (subordinados().length === 0) {
+      @if (subordinados.length === 0) {
       <div class="bg-zinc-800/30 border border-white/10 rounded-lg p-8 text-center">
         <p class="text-white text-lg">No tiene subordinados a su cargo.</p>
       </div>
@@ -36,7 +36,7 @@ import { CommonModule } from '@angular/common';
             </tr>
           </thead>
           <tbody>
-            @for (subordinado of subordinados(); track subordinado.idEmpleado) {
+            @for (subordinado of subordinados; track subordinado.idEmpleado) {
             <tr class="border-t border-white/10 hover:bg-zinc-700/30">
               <td class="px-4 py-3 text-white">{{ subordinado.idEmpleado }}</td>
               <td class="px-4 py-3 text-white font-medium">{{ subordinado.apellido }}</td>
@@ -55,7 +55,7 @@ import { CommonModule } from '@angular/common';
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
           <div>
             <p class="text-gray-300 mb-2">Total de subordinados:</p>
-            <p class="text-white text-2xl font-bold">{{ subordinados().length }}</p>
+            <p class="text-white text-2xl font-bold">{{ subordinados.length }}</p>
           </div>
           <div>
             <p class="text-gray-300 mb-2">Salario total del equipo:</p>
@@ -70,16 +70,16 @@ import { CommonModule } from '@angular/common';
   `,
 })
 export class Subordinados implements OnInit {
-  private readonly service = inject(ServiceEmpleados);
-  private readonly router = inject(Router);
+  service = inject(ServiceEmpleados);
+  router = inject(Router);
 
-  subordinados = signal<Empleado[]>([]);
+  subordinados: Empleado[] = [];
 
   ngOnInit(): void {
     this.verificarToken();
   }
 
-  private verificarToken(): void {
+  verificarToken(): void {
     if (!this.service.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
@@ -87,13 +87,16 @@ export class Subordinados implements OnInit {
     this.cargarSubordinados();
   }
 
-  private async cargarSubordinados(): Promise<void> {
+  async cargarSubordinados(): Promise<void> {
     const subordinados = await this.service.getSubordinados();
-    this.subordinados.set(subordinados);
+    this.subordinados = subordinados;
   }
 
   calcularSalarioTotal(): number {
-    return this.subordinados().reduce((total, subordinado) => total + subordinado.salario, 0);
+    return this.subordinados.reduce(
+      (total: number, subordinado: any) => total + subordinado.salario,
+      0
+    );
   }
 
   volverPerfil(): void {

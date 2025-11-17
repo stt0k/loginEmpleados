@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ServiceEmpleados } from '../../services/service';
 import { Login as LoginType } from '../../models/login';
@@ -50,8 +50,8 @@ import { CommonModule } from '@angular/common';
   `,
 })
 export class Login {
-  private readonly service = inject(ServiceEmpleados);
-  private readonly router = inject(Router);
+  service = inject(ServiceEmpleados);
+  router = inject(Router);
 
   credentials = {
     userName: '',

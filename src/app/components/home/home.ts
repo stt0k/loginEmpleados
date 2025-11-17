@@ -44,7 +44,7 @@ import { CommonModule } from '@angular/common';
   `,
 })
 export class Home implements OnInit {
-  private readonly service = inject(ServiceEmpleados);
+  service = inject(ServiceEmpleados);
   readonly router = inject(Router);
 
   isAuthenticated = false;

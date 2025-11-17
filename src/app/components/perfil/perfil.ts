@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ServiceEmpleados } from '../../services/service';
 import { Empleado } from '../../models/empleado';
@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
         <h2 class="text-2xl font-semibold text-white">Mi Perfil</h2>
       </div>
 
-      @if (empleado()) {
+      @if (empleado) {
       <div class="bg-zinc-800/30 border border-white/10 rounded-lg overflow-hidden mb-6">
         <div class="bg-zinc-900/50 px-6 py-4 border-b border-white/10">
           <h3 class="text-lg font-semibold text-white">Información Personal</h3>
@@ -22,29 +22,29 @@ import { CommonModule } from '@angular/common';
         <div class="p-6 space-y-4">
           <div class="flex justify-between items-center py-3 border-b border-white/10">
             <span class="text-gray-300 font-medium">ID Empleado:</span>
-            <span class="text-white">{{ empleado()!.idEmpleado }}</span>
+            <span class="text-white">{{ empleado.idEmpleado }}</span>
           </div>
 
           <div class="flex justify-between items-center py-3 border-b border-white/10">
             <span class="text-gray-300 font-medium">Apellido:</span>
-            <span class="text-white">{{ empleado()!.apellido }}</span>
+            <span class="text-white">{{ empleado.apellido }}</span>
           </div>
 
           <div class="flex justify-between items-center py-3 border-b border-white/10">
             <span class="text-gray-300 font-medium">Oficio:</span>
-            <span class="text-white">{{ empleado()!.oficio }}</span>
+            <span class="text-white">{{ empleado.oficio }}</span>
           </div>
 
           <div class="flex justify-between items-center py-3 border-b border-white/10">
             <span class="text-gray-300 font-medium">Salario:</span>
             <span class="text-green-400 font-semibold">{{
-              empleado()!.salario | currency : 'EUR' : 'symbol' : '1.2-2'
+              empleado.salario | currency : 'EUR' : 'symbol' : '1.2-2'
             }}</span>
           </div>
 
           <div class="flex justify-between items-center py-3">
             <span class="text-gray-300 font-medium">Director:</span>
-            <span class="text-white">{{ empleado()!.director }}</span>
+            <span class="text-white">{{ empleado.director }}</span>
           </div>
         </div>
       </div>
@@ -62,16 +62,16 @@ import { CommonModule } from '@angular/common';
   `,
 })
 export class Perfil implements OnInit {
-  private readonly service = inject(ServiceEmpleados);
-  private readonly router = inject(Router);
+  service = inject(ServiceEmpleados);
+  router = inject(Router);
 
-  empleado = signal<Empleado | null>(null);
+  empleado: Empleado | null = null;
 
   ngOnInit(): void {
     this.verificarToken();
   }
 
-  private verificarToken(): void {
+  verificarToken(): void {
     if (!this.service.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
@@ -79,9 +79,9 @@ export class Perfil implements OnInit {
     this.cargarPerfil();
   }
 
-  private async cargarPerfil(): Promise<void> {
+  async cargarPerfil(): Promise<void> {
     const perfil = await this.service.getPerfil();
-    this.empleado.set(perfil);
+    this.empleado = perfil;
   }
 
   verSubordinados(): void {
